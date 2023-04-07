@@ -58,6 +58,7 @@ try:
 	product = {
 		'name': data['titleModule']['subject'],
 		'id': data['actionModule']['productId'],
+		'images': data['imageModule']['imagePathList'],
 		'currency': data['commonModule']['currencyCode'],
 		'shipping_fee': 0 if shipping_info['shippingFee'].lower() == 'free' else shipping_info['displayAmount'],
 		'variants': [None] * variant_count
@@ -82,6 +83,16 @@ try:
 			'discount_price': sku['skuVal']['skuActivityAmount']['value'],
 			'unknown_price': float(sku['skuVal']['skuCalPrice'])
 		}
+
+	# We need to iterate over the product variants in another list and match evr to the list created and filled earlier
+	for sku in data['skuModule']['productSKUPropertyList'][0]['skuPropertyValues']:
+		try:
+			variant = next(v for v in product['variants'] if v['name'] == sku['propertyValueDefinitionName'])
+		except:
+			print(f"{sku['propertyValueDefinitionName']} failed to match with primal list!")
+			continue
+
+		variant['image'] = sku['skuPropertyImagePath']
 
 	# Dump it into json
 	# Idk for reading purposes
