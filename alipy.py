@@ -66,7 +66,7 @@ def get_json(product_url):
 			'name': sku['skuAttr'].split(';')[0].split('#', 1)[1],
 			'id': sku['skuId'],
 			'available': sku['skuVal']['availQuantity'],
-			'full_price': sku['skuVal']['skuAmount']['value'], # Almost always false price, only truthful if `original_price==full_price`
+			# 'full_price': sku['skuVal']['skuAmount']['value'], # Almost always false price, only truthful if `original_price==full_price`
 			'original_price': float(sku['skuVal']['skuCalPrice']),
 			'discount_price': sku['skuVal']['skuActivityAmount']['value']
 		}
