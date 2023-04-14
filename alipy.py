@@ -43,10 +43,6 @@ def get_json(product_url):
 		raise ValueError(f'Failed to find product variants on {product_url}. Are you on a product variant page instead of the parent product page?')
 
 	variant_count = len(data['skuModule']['skuPriceList'])
-
-	if 'shippingModule' not in data:
-		raise ValueError('Failed to find shipping info. Are you on a product variant page instead of the parent product page?')
-
 	shipping_info = data['shippingModule']['generalFreightInfo']['originalLayoutResultList'][0]['bizData']
 
 	# Set up our own product dictionary
