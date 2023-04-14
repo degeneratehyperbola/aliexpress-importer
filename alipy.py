@@ -59,28 +59,27 @@ def get_json(product_url):
 		'variants': [None] * variant_count
 	}
 
-
 	# Fill in the info about product variants
-	for i, sku in enumerate(data['skuModule']['skuPriceList']):
+	for i, sku_info in enumerate(data['skuModule']['skuPriceList']):
 		product['variants'][i] = {
-			'name': sku['skuAttr'].split(';')[0].split('#', 1)[1],
-			'id': sku['skuId'],
-			'available': sku['skuVal']['availQuantity'],
-			# 'full_price': sku['skuVal']['skuAmount']['value'], # Almost always false price, only truthful if `original_price==full_price`
-			'original_price': float(sku['skuVal']['skuCalPrice']),
-			'discount_price': sku['skuVal']['skuActivityAmount']['value']
+			'properties': [var.split('#', 1)[1] for var in sku_info['skuAttr'].split(';')],
+			'id': sku_info['skuId'],
+			'available': sku_info['skuVal']['availQuantity'],
+			# 'full_price': sku_info['skuVal']['skuAmount']['value'], # Almost always false price, only truthful if `original_price==full_price`
+			'original_price': float(sku_info['skuVal']['skuCalPrice']),
+			'discount_price': sku_info['skuVal']['skuActivityAmount']['value']
 		}
 
 	# We need to iterate over another list containing product variants info and match names to the list created and filled earlier in order to fill image data
-	for sku in data['skuModule']['productSKUPropertyList'][0]['skuPropertyValues']:
-		try:
-			name = sku['propertyValueDefinitionName']
-			variant = next(v for v in product['variants'] if v['name'] == name)
-		except:
-			print(f"{name} failed to match image data!")
-			continue
+	# for sku_info in data['skuModule']['productSKUPropertyList'][0]['skuPropertyValues']:
+	# 	try:
+	# 		name = sku_info['propertyValueDefinitionName']
+	# 		variant = next(v for v in product['variants'] if v['name'] == name)
+	# 	except:
+	# 		print(f"{name} failed to match image data!")
+	# 		continue
 
-		variant['image'] = sku['skuPropertyImagePath']
+	# 	variant['image'] = sku_info['skuPropertyImagePath']
 	
 	with open('data.json', 'w+') as f:
 		json.dump(data, f, sort_keys=True, indent='\t')
