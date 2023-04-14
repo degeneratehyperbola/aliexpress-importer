@@ -42,6 +42,7 @@ def get_json(product_url):
 	if 'skuModule' not in data:
 		raise ValueError(f'Failed to find product variants on {product_url}. Are you on a product variant page instead of the parent product page?')
 
+	prop_count = len(data['skuModule']['productSKUPropertyList'])
 	variant_count = len(data['skuModule']['skuPriceList'])
 	shipping_info = data['shippingModule']['generalFreightInfo']['originalLayoutResultList'][0]['bizData']
 
@@ -52,30 +53,36 @@ def get_json(product_url):
 		'images': data['imageModule']['imagePathList'],
 		'currency': data['commonModule']['currencyCode'],
 		'shipping_fee': 0 if shipping_info['shippingFee'].lower() == 'free' else shipping_info['displayAmount'],
-		'variants': [None] * variant_count
+		'property_list': [None] * prop_count,
+		'sku_list': [None] * variant_count
 	}
 
-	# Fill in the info about product variants
+	# Fill in info about product SKUs
 	for i, sku_info in enumerate(data['skuModule']['skuPriceList']):
-		product['variants'][i] = {
-			'properties': [var.split('#', 1)[1] for var in sku_info['skuAttr'].split(';')],
-			'id': sku_info['skuId'],
-			'available': sku_info['skuVal']['availQuantity'],
+		product['sku_list'][i] = {
+			'sku_properties': [var.split('#', 1)[1] for var in sku_info['skuAttr'].split(';')],
+			'sku_id': sku_info['skuId'],
+			'sku_available': sku_info['skuVal']['availQuantity'],
 			# 'full_price': sku_info['skuVal']['skuAmount']['value'], # Almost always false price, only truthful if `original_price==full_price`
-			'original_price': float(sku_info['skuVal']['skuCalPrice']),
-			'discount_price': sku_info['skuVal']['skuActivityAmount']['value']
+			'sku_original_price': float(sku_info['skuVal']['skuCalPrice']),
+			'sku_discount_price': sku_info['skuVal']['skuActivityAmount']['value']
 		}
 
-	# We need to iterate over another list containing product variants info and match names to the list created and filled earlier in order to fill image data
-	# for sku_info in data['skuModule']['productSKUPropertyList'][0]['skuPropertyValues']:
-	# 	try:
-	# 		name = sku_info['propertyValueDefinitionName']
-	# 		variant = next(v for v in product['variants'] if v['name'] == name)
-	# 	except:
-	# 		print(f"{name} failed to match image data!")
-	# 		continue
+	# Fill in info about product picakble parameters (e.g. color, size)
+	for i, prop_definition in enumerate(data['skuModule']['productSKUPropertyList']):
+		prop_value_count = len(prop_definition['skuPropertyValues'])
+		
+		product['property_list'][i] = {
+			'prop_name': prop_definition['skuPropertyName'],
+			'prop_values': [None] * prop_value_count
+		}
 
-	# 	variant['image'] = sku_info['skuPropertyImagePath']
+		# Fill in possible values for the product parameter
+		for j, prop_value_definition in enumerate(prop_definition['skuPropertyValues']):
+			product['property_list'][i]['prop_values'][j] = {
+				'prop_value_name': prop_value_definition['propertyValueDefinitionName'],
+				'prop_value_image': prop_value_definition['skuPropertyImagePath'] if 'skuPropertyImagePath' in prop_value_definition else None
+			}
 	
 	with open('data.json', 'w+') as f:
 		json.dump(data, f, sort_keys=True, indent='\t')
