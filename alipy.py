@@ -63,9 +63,9 @@ def get_json(product_url):
 			'sku_properties': [var.split('#', 1)[1] for var in sku_info['skuAttr'].split(';')],
 			'sku_id': sku_info['skuId'],
 			'sku_available': sku_info['skuVal']['availQuantity'],
-			# 'full_price': sku_info['skuVal']['skuAmount']['value'], # Almost always false price, only truthful if `original_price==full_price`
-			'sku_original_price': float(sku_info['skuVal']['skuCalPrice']),
-			'sku_discount_price': sku_info['skuVal']['skuActivityAmount']['value']
+			'sku_full_price': sku_info['skuVal']['skuAmount']['value'], # Full price which almost never is the price you pay, due to permanent discounts
+			'sku_original_price': float(sku_info['skuVal']['skuCalPrice']), # Almost always the true price
+			'sku_discount_price': sku_info['skuVal']['skuActivityAmount']['value'] # First order discounted price
 		}
 
 	# Fill in info about product picakble parameters (e.g. color, size)
