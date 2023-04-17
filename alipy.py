@@ -64,7 +64,7 @@ def get_json(product_url):
 			'sku_id': sku_info['skuId'],
 			'sku_available': sku_info['skuVal']['availQuantity'],
 			'sku_full_price': sku_info['skuVal']['skuAmount']['value'], # Full price which almost never is the price you pay, due to permanent discounts
-			'sku_original_price': float(sku_info['skuVal']['skuCalPrice']), # Almost always the true price
+			'sku_calculated_price': float(sku_info['skuVal']['skuCalPrice']), # Almost always the true price
 			'sku_discount_price': sku_info['skuVal']['skuActivityAmount']['value'] # First order discounted price
 		}
 
