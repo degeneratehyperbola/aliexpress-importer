@@ -48,71 +48,71 @@
 	"shipping_fee": 1.25,
 	"sku_list": [
 		{
-			"sku_available": 2891,
-			"sku_discount_price": 2.11,
-			"sku_full_price": 7.65,
+			"sku_available": 2887,
+			"sku_calculated_price": 1.78,
+			"sku_discount_price": 2.1,
+			"sku_full_price": 7.64,
 			"sku_id": 10000010473229862,
-			"sku_original_price": 1.78,
 			"sku_properties": [
 				"XZ744"
 			]
 		},
 		{
-			"sku_available": 2953,
-			"sku_discount_price": 2.11,
-			"sku_full_price": 7.65,
+			"sku_available": 2937,
+			"sku_calculated_price": 1.78,
+			"sku_discount_price": 2.1,
+			"sku_full_price": 7.64,
 			"sku_id": 10000010473229863,
-			"sku_original_price": 1.78,
 			"sku_properties": [
 				"XZ745"
 			]
 		},
 		{
-			"sku_available": 2958,
-			"sku_discount_price": 2.11,
-			"sku_full_price": 7.65,
+			"sku_available": 2956,
+			"sku_calculated_price": 1.78,
+			"sku_discount_price": 2.1,
+			"sku_full_price": 7.64,
 			"sku_id": 10000010473229860,
-			"sku_original_price": 1.78,
 			"sku_properties": [
 				"XZ742"
 			]
 		},
 		{
-			"sku_available": 2953,
-			"sku_discount_price": 2.11,
-			"sku_full_price": 7.65,
+			"sku_available": 2952,
+			"sku_calculated_price": 1.78,
+			"sku_discount_price": 2.1,
+			"sku_full_price": 7.64,
 			"sku_id": 10000010473229861,
-			"sku_original_price": 1.78,
 			"sku_properties": [
 				"XZ743"
 			]
 		},
 		{
 			"sku_available": 2966,
-			"sku_discount_price": 2.11,
-			"sku_full_price": 7.65,
+			"sku_calculated_price": 1.78,
+			"sku_discount_price": 2.1,
+			"sku_full_price": 7.64,
 			"sku_id": 10000010453934368,
-			"sku_original_price": 1.78,
 			"sku_properties": [
 				"xz026"
 			]
 		},
 		{
-			"sku_available": 2931,
-			"sku_discount_price": 2.11,
-			"sku_full_price": 7.65,
+			"sku_available": 2925,
+			"sku_calculated_price": 1.78,
+			"sku_discount_price": 2.1,
+			"sku_full_price": 7.64,
 			"sku_id": 10000010453934369,
-			"sku_original_price": 1.78,
 			"sku_properties": [
 				"xz030"
 			]
 		},
 		{
-			"sku_available": 2788,
-			"sku_discount_price": 2.11,
-			"sku_full_price": 7.65,
+			"sku_available": 2721,
+			"sku_calculated_price": 1.78,
+			"sku_discount_price": 2.1,
+			"sku_full_price": 7.64,
 			"sku_id": 10000010453934370,
-			"sku_original_price": 1.78,
 			"sku_properties": [
 				"xz037"
 			]
