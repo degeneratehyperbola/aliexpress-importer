@@ -1,6 +1,10 @@
 import sys, alipy
 import pyperclip
 
+print('=' * 60)
+print('DOUBLE CHECK PRODUCT PRICES!!! THEY MAY BE WRONG!!!')
+print('=' * 60)
+
 if len(sys.argv) != 2:
 	print(f'Usage: py {sys.argv[0]} <urls_separated_by_newline.txt>')
 	print(f'Creates and copies an excel table with some product info that is fetched from a given url')
