@@ -19,7 +19,20 @@ excel_table = ""
 
 with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 	for url in urls:
-		p = alipy.get_json(url)
+		tries = 0
+		while tries < 10:
+			try:
+				p = alipy.get_json(url)
+			except Exception as e:
+				print(type(e).__name__, e)
+				print('Retrying...' if tries < 9 else 'Proceeding...')
+			else:
+				break
+			tries += 1
+
+		if not p:
+			continue
+
 		line = [
 			p['name'],
 			f'"=HYPERLINK(""{url}"",""X"")"',
