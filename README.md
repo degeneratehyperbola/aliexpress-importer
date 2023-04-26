@@ -1,7 +1,12 @@
-# aliexpress-fetcher
-Fetch product info in a JSON from AliExpress
+# Aliexpress Fetcher
+Fetch product info from AliExpress in a form of a dictionary
 
-# Usage
-```sh
-py ali_scrape.py <product_page_link>
+# Sample scripts
+## `to_excel.py`
+
+Copies an Excel format table to the clipboard, based on the input text file
+
+Usage:
+```powershell
+py./to_excel.py <urls_separated_by_newlines.txt> # Use alipy library to export some data as an excel table into your clipboard
 ```
