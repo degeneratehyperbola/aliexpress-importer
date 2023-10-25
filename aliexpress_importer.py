@@ -118,4 +118,6 @@ class Importer:
 
 			product.props[i] = prop
 
+		# with open('data.json', 'w+', encoding='utf-8') as f: json.dump(data, f, sort_keys=True, indent='\t', ensure_ascii=False)
+
 		return product
