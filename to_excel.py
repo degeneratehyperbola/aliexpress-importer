@@ -1,5 +1,5 @@
-import sys, alipy
-import pyperclip
+import sys, pyperclip
+from aliexpress_importer import *
 
 print('=' * 60)
 print('DOUBLE CHECK PRODUCT PRICES!!! THEY MAY BE WRONG!!!')
@@ -13,7 +13,7 @@ if len(sys.argv) != 2:
 with open(sys.argv[1], 'r') as f:
 	urls = [url for url in f.read().splitlines() if url.strip()[0] != '#']
 
-IMPORTER = alipy.Importer()
+IMPORTER = Importer()
 
 excel_table = ""
 

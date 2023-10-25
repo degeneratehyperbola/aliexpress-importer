@@ -3,8 +3,17 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import json, re
 from dataclasses import dataclass
+import json, re, logging
+
+__all__ = [
+	'Product', 'Importer'
+]
+
+
+# Package init
+LOGGER = logging.getLogger('aliexpress_importer')
+
 
 @dataclass
 class Product:
@@ -51,26 +60,16 @@ class Importer:
 
 	def import_from_url(self, product_url) -> Product:
 		assert self.driver
-
-		print(f'Scraping {product_url}...')
+		
 		self.driver.get(product_url)
-
-		# Wait for the page to load the necessary element
-		wait = WebDriverWait(self.driver, 10)
-		wait.until(EC.presence_of_element_located((By.XPATH, '//script[contains(text(),"window.runParams")]')))
 		
-		# We use a convenient json object with all the info about the product inside of `window.runParams` variable.
-		# This variable is inaccessible from our DOM but the definition of it is inside some `script` tag
-		data_text = self.driver.find_element(By.XPATH, '//script[contains(text(),"window.runParams")]').get_attribute('innerHTML').strip()
-		data_match = re.search('data: ({.+?}),\n', data_text)
-
-		if not data_match:
-			raise ValueError(f'Failed to parse product data from {product_url}. Are you on a product page?')
-		
-		data = json.loads(data_match.group(1))
-
-		if 'skuModule' not in data:
-			raise ValueError(f'Failed to find product variants on {product_url}. Are you on a product variant page instead of the parent product page?')
+		# We use a convenient JS object that the developers of Ali left us :3
+		script_element = self.driver.find_element(By.XPATH, '//script[contains(text(),"window.runParams")]')
+		script = script_element.get_attribute('innerHTML')
+		# Put product data into a separate variable so it is left untouched by Ali
+		script = script.replace('runParams', 'hijackedRunParams')
+		self.driver.execute_script(script)
+		data = self.driver.execute_script('return window.hijackedRunParams.data')
 
 		# Set up our own product
 		prop_count = len(data['skuModule']['productSKUPropertyList'])

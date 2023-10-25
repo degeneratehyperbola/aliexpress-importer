@@ -1,5 +1,5 @@
-# Aliexpress Fetcher
-Fetch product info from AliExpress in a form of a dictionary
+# Aliexpress Importer
+Fetch product info from AliExpress in a form of a Python dictionary, or simply JSON.
 
 # Sample scripts
 ## `to_excel.py`
