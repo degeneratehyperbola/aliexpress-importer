@@ -4,7 +4,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 import json, re, logging
 
 __all__ = [
@@ -56,6 +56,8 @@ class Product:
 		available_count: int
 		prop_values: list['Product.PropertyValue']
 	
+	asdict = asdict
+
 	name: str
 	id: int
 	images: list[str]
