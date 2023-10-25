@@ -1,3 +1,4 @@
+from logging import LogRecord
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -13,6 +14,24 @@ __all__ = [
 
 # Package init
 LOGGER = logging.getLogger('aliexpress_importer')
+LOGGER.setLevel(logging.DEBUG)
+
+class _CustomHandler(logging.StreamHandler):
+	def	format(self, record: LogRecord) -> str:
+		color = '\033[1m'
+		reset = '\033[0m'
+		if record.levelno >= logging.FATAL:
+			color += '\033[93m\033[41m'
+		elif record.levelno >= logging.ERROR:
+			color += '\033[31m'
+		elif record.levelno >= logging.WARNING:
+			color += '\033[33m'
+		elif record.levelno >= logging.INFO:
+			color += '\033[34m'
+		
+		return f'[{color + record.levelname.upper() + reset}] {record.name} : {record.msg}'
+
+LOGGER.addHandler(_CustomHandler())
 
 
 @dataclass
@@ -48,19 +67,20 @@ class Product:
 class Importer:
 	def __init__(self):
 		# Set up the Selenium headless web driver (browser)
-		print('Setting up headless browser...')
+		LOGGER.info('Setting up headless browser')
 		options = Options()
-		options.headless = True
+		options.add_argument('--headless')
 		self.driver = webdriver.Chrome(options=options)
 
 	def __del__(self):
-		print('Cleaning up...')
+		LOGGER.info('Cleaning up')
 		self.driver.quit()
-		print('Done!')
+		LOGGER.info('Done!')
 
 	def import_from_url(self, product_url) -> Product:
 		assert self.driver
 
+		LOGGER.info(f'Waiting for {product_url}')
 		self.driver.get(product_url)
 		
 		# We use a convenient JS object that the developers of Ali left us :3
@@ -72,6 +92,8 @@ class Importer:
 		data: dict = self.driver.execute_script('return window.hijackedRunParams.data')
 
 		# Set up needed product data
+		LOGGER.info('Filling product data')
+
 		shipping_data = data['webGeneralFreightCalculateComponent']['originalLayoutResultList'][0]['bizData']
 		product = Product(
 			name = data['productInfoComponent']['subject'],
@@ -82,6 +104,10 @@ class Importer:
 			props = [None] * len(data['skuComponent']['productSKUPropertyList']),
 			skus = [None] * len(data['priceComponent']['skuPriceList'])
 		)
+
+		LOGGER.debug(f'Product "{product.name}"')
+		LOGGER.debug(f'Properties: {len(product.props)}')
+		LOGGER.debug(f'SKUs: {len(product.skus)}')
 
 		# Fill in info about product stock keeping units
 		for i, sku_data in enumerate(data['priceComponent']['skuPriceList']):
