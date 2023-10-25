@@ -79,8 +79,6 @@ class Importer:
 		LOGGER.info('Done!')
 
 	def import_from_url(self, product_url) -> Product:
-		assert self.driver
-
 		LOGGER.info(f'Waiting for {product_url}')
 		self.driver.get(product_url)
 		
