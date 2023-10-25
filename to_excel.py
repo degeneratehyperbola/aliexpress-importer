@@ -20,6 +20,7 @@ excel_table = ""
 with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 	for url in urls:
 		tries = 0
+		p = None
 		while tries < 10:
 			try:
 				p = IMPORTER.import_from_url(url)
