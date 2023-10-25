@@ -1,5 +1,26 @@
 # Aliexpress Importer
-Fetch product info from AliExpress in a form of a Python dictionary, or simply JSON.
+Retrieve product info from AliExpress in a form of a Python dictionary, or whatever the hell you want.
+
+
+# Usage
+### Setting up
+```py
+from aliexpress_importer import *
+
+IMPORTER = Importer()
+```
+
+### Retrieving product data
+```py
+product: Product = IMPORTER.import_from_url(url)
+```
+Every data type comes with hinting.
+
+### Turning data into a dictionary (JSON)
+```py
+product.asdict()
+```
+
 
 # Sample scripts
 ## `to_excel.py`
@@ -7,6 +28,6 @@ Fetch product info from AliExpress in a form of a Python dictionary, or simply J
 Copies an Excel format table to the clipboard, based on the input text file
 
 Usage:
-```powershell
-py./to_excel.py <urls_separated_by_newlines.txt>
+```bash
+py ./to_excel.py <urls_separated_by_newlines.txt>
 ```
