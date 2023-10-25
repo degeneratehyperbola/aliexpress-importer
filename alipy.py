@@ -4,6 +4,37 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import json, re
+from dataclasses import dataclass
+
+@dataclass
+class Product:
+	@dataclass
+	class PropertyValue:
+		image_url: str
+		value: str
+
+	@dataclass
+	class Property:
+		name: str
+		values: list['Product.PropertyValue']
+
+	@dataclass
+	class StockKeepingUnit:
+		id: int
+		full_price: float
+		discount_price: float
+		calculated_price: float
+		available_count: int
+		prop_values: list['Product.PropertyValue']
+	
+	name: str
+	id: int
+	images: list[str]
+	currency: str
+	shipping_fee: float
+	props: list[Property]
+	skus: list[StockKeepingUnit]
+
 
 class Importer:
 	def __init__(self):
@@ -18,7 +49,7 @@ class Importer:
 		self.driver.quit()
 		print('Done!')
 
-	def import_from_url(self, product_url) -> dict:
+	def import_from_url(self, product_url) -> Product:
 		assert self.driver
 
 		print(f'Scraping {product_url}...')
@@ -40,47 +71,49 @@ class Importer:
 		if 'skuModule' not in data:
 			raise ValueError(f'Failed to find product variants on {product_url}. Are you on a product variant page instead of the parent product page?')
 
+		# Set up our own product
 		prop_count = len(data['skuModule']['productSKUPropertyList'])
 		variant_count = len(data['skuModule']['skuPriceList'])
 		shipping_info = data['shippingModule']['generalFreightInfo']['originalLayoutResultList'][0]['bizData']
 
-		# Set up our own product dictionary
-		product = {
-			'name': data['titleModule']['subject'],
-			'id': data['actionModule']['productId'],
-			'images': data['imageModule']['imagePathList'],
-			'currency': data['commonModule']['currencyCode'],
-			'shipping_fee': 0 if shipping_info['shippingFee'].lower() == 'free' else shipping_info['displayAmount'],
-			'property_list': [None] * prop_count,
-			'sku_list': [None] * variant_count
-		}
+		product = Product(
+			name = data['titleModule']['subject'],
+			id = data['actionModule']['productId'],
+			images = data['imageModule']['imagePathList'],
+			currency = data['commonModule']['currencyCode'],
+			shipping_fee = 0 if shipping_info['shippingFee'].lower() == 'free' else shipping_info['displayAmount'],
+			props = [None] * prop_count,
+			skus = [None] * variant_count
+		)
 
-		# Fill in info about product SKUs
+		# Fill in info about product stock keeping units
 		for i, sku_info in enumerate(data['skuModule']['skuPriceList']):
-			product['sku_list'][i] = {
-				'sku_properties': [var.split('#', 1)[1] for var in sku_info['skuAttr'].split(';')],
-				'sku_id': sku_info['skuId'],
-				'sku_available': sku_info['skuVal']['availQuantity'],
-				'sku_full_price': sku_info['skuVal']['skuAmount']['value'], # Full price which almost never is the price you pay, due to permanent discounts
-				'sku_calculated_price': float(sku_info['skuVal']['skuCalPrice']), # Almost always the true price
-				'sku_discount_price': sku_info['skuVal']['skuActivityAmount']['value'] # First order discounted price
-			}
+			product.skus[i] = Product.StockKeepingUnit(
+				prop_values = [var.split('#', 1)[1] for var in sku_info['skuAttr'].split(';')],
+				id = sku_info['skuId'],
+				available_count = sku_info['skuVal']['availQuantity'],
+				full_price = sku_info['skuVal']['skuAmount']['value'], # Full price which almost never is the price you pay, due to permanent discounts
+				calculated_price = float(sku_info['skuVal']['skuCalPrice']), # Almost always the true price
+				discount_price = sku_info['skuVal']['skuActivityAmount']['value'] # First order discounted price
+			)
 
 		# Fill in info about product picakble parameters (e.g. color, size)
-		for i, prop_definition in enumerate(data['skuModule']['productSKUPropertyList']):
-			prop_value_count = len(prop_definition['skuPropertyValues'])
-			
-			product['property_list'][i] = {
-				'prop_name': prop_definition['skuPropertyName'],
-				'prop_values': [None] * prop_value_count
-			}
+		for i, prop_data in enumerate(data['skuModule']['productSKUPropertyList']):
+			prop_value_count = len(prop_data['skuPropertyValues'])
+
+			prop = Product.Property(
+				name = prop_data['skuPropertyName'],
+				values = [None] * prop_value_count
+			)
 
 			# Fill in possible values for the product parameter
-			for j, prop_value_definition in enumerate(prop_definition['skuPropertyValues']):
-				product['property_list'][i]['prop_values'][j] = {
-					'prop_value_name': prop_value_definition['propertyValueDefinitionName'],
-					'prop_value_image': prop_value_definition['skuPropertyImagePath'] if 'skuPropertyImagePath' in prop_value_definition else None
-				}
+			for j, prop_value_data in enumerate(prop_data['skuPropertyValues']):
+				prop.values[j] = Product.PropertyValue(
+					value = prop_value_data['propertyValueDefinitionName'],
+					image_url = prop_value_data['skuPropertyImagePath'] if 'skuPropertyImagePath' in prop_value_data else None
+				)
+
+			product.props[i] = prop
 		
 		with open('data.json', 'w+') as f:
 			json.dump(data, f, sort_keys=True, indent='\t')

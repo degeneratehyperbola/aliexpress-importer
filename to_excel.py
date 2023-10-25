@@ -34,10 +34,10 @@ with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 			continue
 
 		line = [
-			p['name'],
+			p.name,
 			f'"=HYPERLINK(""{url}"",""X"")"',
-			min(max(p['sku_list'][0]['sku_discount_price'], p['sku_list'][0]['sku_calculated_price']), p['sku_list'][0]['sku_full_price']),
-			p['shipping_fee'],
+			min(max(p.skus[0].discount_price, p.skus[0].calculated_price), p.skus[0].full_price),
+			p.shipping_fee,
 			'#',
 			'#',
 			'9.99',
