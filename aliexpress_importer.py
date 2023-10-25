@@ -18,7 +18,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 class _CustomHandler(logging.StreamHandler):
 	def	format(self, record: LogRecord) -> str:
-		color = '\033[1m'
+		bold = '\033[1m'
+		color = bold
 		reset = '\033[0m'
 		if record.levelno >= logging.FATAL:
 			color += '\033[93m\033[41m'
@@ -29,7 +30,7 @@ class _CustomHandler(logging.StreamHandler):
 		elif record.levelno >= logging.INFO:
 			color += '\033[34m'
 		
-		return f'[{color + record.levelname.upper() + reset}] {record.name} : {record.msg}'
+		return f'[{color}{record.levelname.upper():>8s}{reset} {bold}{record.name}{reset}] {record.msg}'
 
 LOGGER.addHandler(_CustomHandler())
 
