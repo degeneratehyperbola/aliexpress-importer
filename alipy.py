@@ -59,7 +59,8 @@ class Importer:
 		wait = WebDriverWait(self.driver, 10)
 		wait.until(EC.presence_of_element_located((By.XPATH, '//script[contains(text(),"window.runParams")]')))
 		
-		# We use a convenient json object with all the info about the product inside of `window.runParams` variable. This variable is inaccessible from our DOM but the definition of it is inside some `script` tag
+		# We use a convenient json object with all the info about the product inside of `window.runParams` variable.
+		# This variable is inaccessible from our DOM but the definition of it is inside some `script` tag
 		data_text = self.driver.find_element(By.XPATH, '//script[contains(text(),"window.runParams")]').get_attribute('innerHTML').strip()
 		data_match = re.search('data: ({.+?}),\n', data_text)
 
@@ -114,10 +115,5 @@ class Importer:
 				)
 
 			product.props[i] = prop
-		
-		with open('data.json', 'w+') as f:
-			json.dump(data, f, sort_keys=True, indent='\t')
-		with open('product.json', 'w+') as f:
-			json.dump(product, f, sort_keys=True, indent='\t')
 
 		return product
