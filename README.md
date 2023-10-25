@@ -8,5 +8,5 @@ Copies an Excel format table to the clipboard, based on the input text file
 
 Usage:
 ```powershell
-py./to_excel.py <urls_separated_by_newlines.txt> # Use alipy library to export some data as an excel table into your clipboard
+py./to_excel.py <urls_separated_by_newlines.txt>
 ```
