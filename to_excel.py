@@ -13,7 +13,7 @@ if len(sys.argv) != 2:
 with open(sys.argv[1], 'r') as f:
 	urls = [url for url in f.read().splitlines() if url.strip()[0] != '#']
 
-alipy.setup()
+IMPORTER = alipy.Importer()
 
 excel_table = ""
 
@@ -22,7 +22,7 @@ with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 		tries = 0
 		while tries < 10:
 			try:
-				p = alipy.get_json(url)
+				p = IMPORTER.import_from_url(url)
 			except Exception as e:
 				print(type(e).__name__, e)
 				print('Retrying...' if tries < 9 else 'Proceeding...')
@@ -49,5 +49,3 @@ with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 		f.write(linestr)
 
 pyperclip.copy(excel_table)
-
-alipy.cleanup()
