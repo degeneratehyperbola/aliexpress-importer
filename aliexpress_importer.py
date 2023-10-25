@@ -60,7 +60,7 @@ class Importer:
 
 	def import_from_url(self, product_url) -> Product:
 		assert self.driver
-		
+
 		self.driver.get(product_url)
 		
 		# We use a convenient JS object that the developers of Ali left us :3
@@ -69,36 +69,39 @@ class Importer:
 		# Put product data into a separate variable so it is left untouched by Ali
 		script = script.replace('runParams', 'hijackedRunParams')
 		self.driver.execute_script(script)
-		data = self.driver.execute_script('return window.hijackedRunParams.data')
+		data: dict = self.driver.execute_script('return window.hijackedRunParams.data')
 
-		# Set up our own product
-		prop_count = len(data['skuModule']['productSKUPropertyList'])
-		variant_count = len(data['skuModule']['skuPriceList'])
-		shipping_info = data['shippingModule']['generalFreightInfo']['originalLayoutResultList'][0]['bizData']
-
+		# Set up needed product data
+		shipping_data = data['webGeneralFreightCalculateComponent']['originalLayoutResultList'][0]['bizData']
 		product = Product(
-			name = data['titleModule']['subject'],
-			id = data['actionModule']['productId'],
-			images = data['imageModule']['imagePathList'],
-			currency = data['commonModule']['currencyCode'],
-			shipping_fee = 0 if shipping_info['shippingFee'].lower() == 'free' else shipping_info['displayAmount'],
-			props = [None] * prop_count,
-			skus = [None] * variant_count
+			name = data['productInfoComponent']['subject'],
+			id = data['productInfoComponent']['id'],
+			images = data['imageComponent']['imagePathList'],
+			currency = data['currencyComponent']['currencyCode'],
+			shipping_fee = 0 if shipping_data['shippingFee'].lower() == 'free' else shipping_data['displayAmount'],
+			props = [None] * len(data['skuComponent']['productSKUPropertyList']),
+			skus = [None] * len(data['priceComponent']['skuPriceList'])
 		)
 
 		# Fill in info about product stock keeping units
-		for i, sku_info in enumerate(data['skuModule']['skuPriceList']):
+		for i, sku_data in enumerate(data['priceComponent']['skuPriceList']):
 			product.skus[i] = Product.StockKeepingUnit(
-				prop_values = [var.split('#', 1)[1] for var in sku_info['skuAttr'].split(';')],
-				id = sku_info['skuId'],
-				available_count = sku_info['skuVal']['availQuantity'],
-				full_price = sku_info['skuVal']['skuAmount']['value'], # Full price which almost never is the price you pay, due to permanent discounts
-				calculated_price = float(sku_info['skuVal']['skuCalPrice']), # Almost always the true price
-				discount_price = sku_info['skuVal']['skuActivityAmount']['value'] # First order discounted price
+				prop_values = [var.split('#', 1)[1] for var in sku_data['skuAttr'].split(';')],
+				id = sku_data['skuId'],
+				available_count = sku_data['skuVal']['availQuantity'],
+				
+				# Full price which almost never is the price you pay, due to permanent discounts
+				full_price = sku_data['skuVal']['skuAmount']['value'],
+				# Almost always the true price
+				calculated_price = float(sku_data['skuVal']['skuCalPrice']),
+				# First order discount price
+				discount_price = sku_data['skuVal']['skuActivityAmount']['value']
+				if 'skuActivityAmount' in sku_data['skuVal']
+				else -1
 			)
 
 		# Fill in info about product picakble parameters (e.g. color, size)
-		for i, prop_data in enumerate(data['skuModule']['productSKUPropertyList']):
+		for i, prop_data in enumerate(data['skuComponent']['productSKUPropertyList']):
 			prop_value_count = len(prop_data['skuPropertyValues'])
 
 			prop = Product.Property(
