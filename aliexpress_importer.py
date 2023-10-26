@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import *
 from dataclasses import dataclass, asdict
+import webbrowser
 import json, re, logging
 
 __all__ = [
@@ -81,6 +82,7 @@ class Importer:
 		LOGGER.info('Setting up headless browser')
 		options = Options()
 		options.add_argument('--headless')
+		options.add_argument('--remote-debugging-port=9222')
 		self.driver = webdriver.Chrome(options=options)
 
 	def __del__(self):
