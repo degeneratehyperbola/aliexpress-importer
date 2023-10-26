@@ -4,6 +4,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import *
 from dataclasses import dataclass, asdict
 import json, re, logging
 
@@ -39,13 +40,20 @@ LOGGER.addHandler(_CustomHandler())
 class Product:
 	@dataclass
 	class PropertyValue:
+		name: str
+		id: int
 		image_url: str
-		value: str
 
 	@dataclass
 	class Property:
 		name: str
+		id: int
 		values: list['Product.PropertyValue']
+
+	@dataclass
+	class PropValuePair:
+		prop_id: int
+		value_id: int
 
 	@dataclass
 	class StockKeepingUnit:
@@ -54,7 +62,7 @@ class Product:
 		discount_price: float
 		calculated_price: float
 		available_count: int
-		prop_values: list['Product.PropertyValue']
+		prop_values: list['Product.PropValuePair']
 	
 	asdict = asdict
 
@@ -83,9 +91,16 @@ class Importer:
 	def import_from_url(self, product_url) -> Product:
 		LOGGER.info(f'Waiting for {product_url}')
 		self.driver.get(product_url)
-		
+
 		# We use a convenient JS object that the developers of Ali left us :3
-		script_element = self.driver.find_element(By.XPATH, '//script[contains(text(),"window.runParams")]')
+		try:
+			wait = WebDriverWait(self.driver, 5)
+			script_element = wait.until(EC.presence_of_element_located(
+				(By.XPATH, '//script[contains(text(), "window.runParams")]')
+			))
+		except NoSuchElementException as e:
+			LOGGER.fatal('Could not locate product data. Are you on a product page?')
+			raise RuntimeError('Could not locate product data')
 		script = script_element.get_attribute('innerHTML')
 		# Put product data into a separate variable so it is left untouched by Ali
 		script = script.replace('runParams', 'hijackedRunParams')
@@ -97,53 +112,66 @@ class Importer:
 
 		shipping_data = data['webGeneralFreightCalculateComponent']['originalLayoutResultList'][0]['bizData']
 		product = Product(
-			name = data['productInfoComponent']['subject'],
-			id = data['productInfoComponent']['id'],
-			images = data['imageComponent']['imagePathList'],
-			currency = data['currencyComponent']['currencyCode'],
-			shipping_fee = 0 if shipping_data['shippingFee'].lower() == 'free' else shipping_data['displayAmount'],
-			props = [None] * len(data['skuComponent']['productSKUPropertyList']),
-			skus = [None] * len(data['priceComponent']['skuPriceList'])
+			name=data['productInfoComponent']['subject'],
+			id=data['productInfoComponent']['id'],
+			images=data['imageComponent']['imagePathList'],
+			currency=data['currencyComponent']['currencyCode'],
+			shipping_fee=0 if shipping_data['shippingFee'].lower() == 'free' else shipping_data['displayAmount'],
+			props=[],
+			skus=[]
 		)
 
 		LOGGER.debug(f'Product "{product.name}"')
+
+		# Fill in info about product picakble parameters (e.g. color, size)
+		for prop_data in data['skuComponent']['productSKUPropertyList']:
+			values = []
+
+			# Fill in possible values for the product parameter
+			for prop_value_pair in prop_data['skuPropertyValues']:
+				values.append(Product.PropertyValue(
+					name=prop_value_pair['propertyValueDefinitionName'],
+					id=prop_value_pair['propertyValueId'],
+					image_url=prop_value_pair['skuPropertyImagePath'] if 'skuPropertyImagePath' in prop_value_pair else None
+				))
+
+			product.props.append(Product.Property(
+				name=prop_data['skuPropertyName'],
+				id=prop_data['skuPropertyId'],
+				values=values
+			))
+		
 		LOGGER.debug(f'Properties: {len(product.props)}')
-		LOGGER.debug(f'SKUs: {len(product.skus)}')
 
 		# Fill in info about product stock keeping units
-		for i, sku_data in enumerate(data['priceComponent']['skuPriceList']):
-			product.skus[i] = Product.StockKeepingUnit(
-				prop_values = [var.split('#', 1)[1] for var in sku_data['skuAttr'].split(';')],
-				id = sku_data['skuId'],
+		for sku_data in data['priceComponent']['skuPriceList']:
+			prop_values = []
+			
+			# Fill in property:value pairs
+			for prop_value_pair in sku_data['skuAttr'].split(';'):
+				prop_value_pair = prop_value_pair.split(':', 1)
+				prop_value_pair[1] = prop_value_pair[1].split('#', 1)[0]
+				prop_values.append(Product.PropValuePair(
+					prop_id=int(prop_value_pair[0]),
+					value_id=int(prop_value_pair[1])
+				))
+
+			product.skus.append(Product.StockKeepingUnit(
+				prop_values=prop_values,
+				id=sku_data['skuId'],
 				available_count = sku_data['skuVal']['availQuantity'],
 				
 				# Full price which almost never is the price you pay, due to permanent discounts
-				full_price = sku_data['skuVal']['skuAmount']['value'],
+				full_price=sku_data['skuVal']['skuAmount']['value'],
 				# Almost always the true price
-				calculated_price = float(sku_data['skuVal']['skuCalPrice']),
+				calculated_price=float(sku_data['skuVal']['skuCalPrice']),
 				# First order discount price
-				discount_price = sku_data['skuVal']['skuActivityAmount']['value']
+				discount_price=sku_data['skuVal']['skuActivityAmount']['value']
 				if 'skuActivityAmount' in sku_data['skuVal']
 				else -1
-			)
+			))
 
-		# Fill in info about product picakble parameters (e.g. color, size)
-		for i, prop_data in enumerate(data['skuComponent']['productSKUPropertyList']):
-			prop_value_count = len(prop_data['skuPropertyValues'])
-
-			prop = Product.Property(
-				name = prop_data['skuPropertyName'],
-				values = [None] * prop_value_count
-			)
-
-			# Fill in possible values for the product parameter
-			for j, prop_value_data in enumerate(prop_data['skuPropertyValues']):
-				prop.values[j] = Product.PropertyValue(
-					value = prop_value_data['propertyValueDefinitionName'],
-					image_url = prop_value_data['skuPropertyImagePath'] if 'skuPropertyImagePath' in prop_value_data else None
-				)
-
-			product.props[i] = prop
+		LOGGER.debug(f'SKUs: {len(product.skus)}')
 
 		# with open('data.json', 'w+', encoding='utf-8') as f: json.dump(data, f, sort_keys=True, indent='\t', ensure_ascii=False)
 
