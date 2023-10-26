@@ -31,6 +31,8 @@ class _CustomHandler(logging.StreamHandler):
 			color += '\033[33m'
 		elif record.levelno >= logging.INFO:
 			color += '\033[34m'
+		elif record.levelno >= logging.DEBUG:
+			color += '\033[90m'
 		
 		return f'[{color}{record.levelname.upper():>8s}{reset} {bold}{record.name}{reset}] {record.msg}'
 
