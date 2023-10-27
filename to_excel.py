@@ -6,8 +6,7 @@ print('DOUBLE CHECK PRODUCT PRICES!!! THEY MAY BE WRONG!!!')
 print('=' * 60)
 
 if len(sys.argv) != 2:
-	print(f'Usage: py {sys.argv[0]} <urls_separated_by_newline.txt>')
-	print(f'Creates and copies an excel table with some product info that is fetched from a given url')
+	print(f'Usage: py {sys.argv[0]} <urls.txt>')
 	quit(1)
 
 with open(sys.argv[1], 'r') as f:
@@ -15,12 +14,12 @@ with open(sys.argv[1], 'r') as f:
 
 IMPORTER = Importer()
 
-excel_table = ""
+excel_table = ''
 
 with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 	for url in urls:
 		tries = 0
-		p = None
+		p: Product = None
 		while tries < 10:
 			try:
 				p = IMPORTER.import_product(url)
@@ -29,10 +28,8 @@ with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 				print('Retrying...' if tries < 9 else 'Proceeding...')
 			else:
 				break
-			tries += 1
 
-		if not p:
-			continue
+			tries += 1
 
 		line = [
 			p.name,
@@ -45,8 +42,8 @@ with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 			'10',
 			'.13'
 		]
-		linestr = '\t'.join([str(v) for v in line]) + '\n'
-		excel_table += linestr
-		f.write(linestr)
+		line = '\t'.join([str(v) for v in line]) + '\n'
+		excel_table += line
+		f.write(line)
 
 pyperclip.copy(excel_table)
