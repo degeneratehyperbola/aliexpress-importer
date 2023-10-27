@@ -92,9 +92,9 @@ class Importer:
 		self.driver.quit()
 		LOGGER.info('Done!')
 
-	def import_from_url(self, product_url) -> Product:
-		LOGGER.info(f'Waiting for {product_url}')
-		self.driver.get(product_url)
+	def import_product(self, url) -> Product:
+		LOGGER.info(f'Waiting for {url}')
+		self.driver.get(url)
 
 		# We use a convenient JS object that the developers of Ali left us :3
 		try:

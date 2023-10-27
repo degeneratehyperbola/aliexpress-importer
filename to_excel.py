@@ -23,7 +23,7 @@ with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 		p = None
 		while tries < 10:
 			try:
-				p = IMPORTER.import_from_url(url)
+				p = IMPORTER.import_product(url)
 			except Exception as e:
 				print(type(e).__name__, e)
 				print('Retrying...' if tries < 9 else 'Proceeding...')
