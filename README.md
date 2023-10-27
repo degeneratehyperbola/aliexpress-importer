@@ -12,7 +12,7 @@ IMPORTER = Importer()
 
 ### Retrieving product data
 ```py
-product: Product = IMPORTER.import_from_url(url)
+product: Product = IMPORTER.import_product(url)
 ```
 Every data type comes with hinting.
 
