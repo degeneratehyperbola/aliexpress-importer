@@ -175,6 +175,4 @@ class Importer:
 
 		LOGGER.debug(f'SKUs: {len(product.skus)}')
 
-		# with open('data.json', 'w+', encoding='utf-8') as f: json.dump(data, f, sort_keys=True, indent='\t', ensure_ascii=False)
-
 		return product
