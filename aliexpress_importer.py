@@ -41,20 +41,33 @@ LOGGER.addHandler(_CustomHandler())
 
 @dataclass
 class Product:
+	'''Describes and holds data about an AliExpress product.
+
+	### Usage:
+	```py
+	product = IMPORTER.import_product('https://www.aliexpress.com/item/1005002013381252.html')
+	json = product.asdict() # To turn this into a dictionary
+	```
+	'''
+
 	@dataclass
 	class PropertyValue:
+		'''Possible value for a property (e.g. red, blue, plastic, metal).'''
 		name: str
 		id: int
 		image_url: str
 
 	@dataclass
 	class Property:
+		'''Property (e.g. color, material, size) of a product.'''
 		name: str
 		id: int
 		values: list['Product.PropertyValue']
+		'''Possible values for a property (e.g. red, blue, plastic, metal).'''
 
 	@dataclass
 	class PropValuePair:
+		'''Used to match a property and its value.'''
 		prop_id: int
 		value_id: int
 
@@ -62,10 +75,20 @@ class Product:
 	class StockKeepingUnit:
 		id: int
 		full_price: float
+		'''Full price before the disount.'''
 		discount_price: float
+		'''Price after the discount.
+
+		Note: this value is `-1` if no discount is present.
+		'''
 		calculated_price: float
+		'''Unknown'''
 		available_count: int
 		prop_values: list['Product.PropValuePair']
+		'''Properties of this product.
+		
+		See: `Product.Property`.
+		'''
 	
 	asdict = asdict
 
@@ -73,14 +96,24 @@ class Product:
 	id: int
 	images: list[str]
 	currency: str
+	'''e.g. 'USD', 'PLN'.'''
 	shipping_fee: float
 	props: list[Property]
+	'''Properties (e.g. color, material, size) of a product.'''
 	skus: list[StockKeepingUnit]
 
 
 class Importer:
+	'''AliExpress importer.
+	
+	### Usage:
+	```py
+	IMPORTER = Importer()
+	IMPORTER.import_product('https://www.aliexpress.com/item/1005002013381252.html')
+	```
+	'''
+
 	def __init__(self):
-		# Set up the Selenium headless web driver (browser)
 		LOGGER.info('Setting up headless browser')
 		options = Options()
 		options.add_argument('--headless')
@@ -117,7 +150,6 @@ class Importer:
 	def import_product(self, url) -> Product:
 		data = self._import_product_raw(url)
 
-		# Set up needed product data
 		LOGGER.info('Filling product data')
 
 		shipping_data = data['webGeneralFreightCalculateComponent']['originalLayoutResultList'][0]['bizData']
@@ -133,11 +165,10 @@ class Importer:
 
 		LOGGER.debug(f'Product "{product.name}"')
 
-		# Fill in info about product picakble parameters (e.g. color, size)
+		# Props
 		for prop_data in data['skuComponent']['productSKUPropertyList']:
 			values = []
 
-			# Fill in possible values for the product parameter
 			for prop_value_pair in prop_data['skuPropertyValues']:
 				values.append(Product.PropertyValue(
 					name=prop_value_pair['propertyValueDefinitionName'],
@@ -153,11 +184,11 @@ class Importer:
 		
 		LOGGER.debug(f'Properties: {len(product.props)}')
 
-		# Fill in info about product stock keeping units
+		# SKUs
 		for sku_data in data['priceComponent']['skuPriceList']:
 			prop_values = []
 			
-			# Fill in property:value pairs
+			# property:value pairs
 			for prop_value_pair in sku_data['skuAttr'].split(';'):
 				prop_value_pair = prop_value_pair.split(':', 1)
 				prop_value_pair[1] = prop_value_pair[1].split('#', 1)[0]
@@ -170,8 +201,6 @@ class Importer:
 				prop_values=prop_values,
 				id=sku_data['skuId'],
 				available_count = sku_data['skuVal']['availQuantity'],
-				
-				# Full price which almost never is the price you pay, due to permanent discounts
 				full_price=sku_data['skuVal']['skuAmount']['value'],
 				# Almost always the true price
 				calculated_price=float(sku_data['skuVal']['skuCalPrice']),
