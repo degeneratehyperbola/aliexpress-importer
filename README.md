@@ -24,10 +24,9 @@ product.asdict()
 
 # Sample scripts
 ## `to_excel.py`
-
-Copies an Excel format table to the clipboard, based on the input text file
+Fetches product data from URLs specified in `urls.txt` (separated by line break). Then copies an Excel table to the clipboard, which you can then paste into any excel table.
 
 Usage:
-```bash
-py ./to_excel.py <urls_separated_by_newlines.txt>
+```powershell
+py ./to_excel.py <urls.txt>
 ```
