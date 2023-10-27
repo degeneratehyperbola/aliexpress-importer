@@ -1,3 +1,4 @@
 *.txt
 
+product.json
 __pycache__/
