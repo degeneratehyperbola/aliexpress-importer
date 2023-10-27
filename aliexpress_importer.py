@@ -92,7 +92,7 @@ class Importer:
 		self.driver.quit()
 		LOGGER.info('Done!')
 
-	def import_product(self, url) -> Product:
+	def _import_product_raw(self, url):
 		LOGGER.info(f'Waiting for {url}')
 		self.driver.get(url)
 
@@ -105,11 +105,17 @@ class Importer:
 		except NoSuchElementException as e:
 			LOGGER.fatal('Could not locate product data. Are you on a product page?')
 			raise RuntimeError('Could not locate product data')
+		
 		script = script_element.get_attribute('innerHTML')
+
 		# Put product data into a separate variable so it is left untouched by Ali
 		script = script.replace('runParams', 'hijackedRunParams')
 		self.driver.execute_script(script)
-		data: dict = self.driver.execute_script('return window.hijackedRunParams.data')
+
+		return self.driver.execute_script('return window.hijackedRunParams.data')
+
+	def import_product(self, url) -> Product:
+		data = self._import_product_raw(url)
 
 		# Set up needed product data
 		LOGGER.info('Filling product data')
