@@ -7,7 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import *
 from dataclasses import dataclass, asdict
 import webbrowser
-import json, re, logging
+import logging
 
 __all__ = [
 	'Product', 'Importer'
