@@ -18,9 +18,8 @@ excel_table = ''
 
 with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 	for url in urls:
-		tries = 0
 		p: Product = None
-		while tries < 10:
+		for tries in range(10):
 			try:
 				p = IMPORTER.import_product(url)
 			except Exception as e:
@@ -29,21 +28,19 @@ with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 			else:
 				break
 
-			tries += 1
+		if p:
+			line = [
+				p.name,
+				f'=HYPERLINK("{url}","X")',
+				p.skus[1].full_price,
+				p.shipping_fee,
+				1,
+				(p.shipping_fee + p.skus[1].full_price) * 1.5 + .13 * 9.99,
+				.13
+			]
+			line = '\t'.join([str(v) for v in line]) + '\n'
+			excel_table += line
 
-		line = [
-			p.name,
-			f'"=HYPERLINK(""{url}"",""X"")"',
-			min(max(p.skus[0].discount_price, p.skus[0].calculated_price), p.skus[0].full_price),
-			p.shipping_fee,
-			'#',
-			'#',
-			'9.99',
-			'10',
-			'.13'
-		]
-		line = '\t'.join([str(v) for v in line]) + '\n'
-		excel_table += line
-		f.write(line)
+			f.write(line)
 
 pyperclip.copy(excel_table)
