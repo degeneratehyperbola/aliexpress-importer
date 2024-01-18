@@ -145,6 +145,11 @@ class Importer:
 		script = script.replace('runParams', 'hijackedRunParams')
 		self.driver.execute_script(script)
 
+		# with open('raw.json', 'w', encoding='utf-8') as raw:
+		# 	import json
+		# 	json.dump(self.driver.execute_script('return window.hijackedRunParams.data'), raw, indent='\t', ensure_ascii=False)
+		# 	LOGGER.debug(f'Dumped to {raw.name}')
+
 		return self.driver.execute_script('return window.hijackedRunParams.data')
 
 	def import_product(self, url) -> Product:
