@@ -14,7 +14,7 @@ with open(sys.argv[1], 'r') as f:
 
 IMPORTER = Importer()
 
-excel_table = ''
+lines = []
 
 with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 	for url in urls:
@@ -38,9 +38,9 @@ with open('backup_clipboard.txt', 'w+', encoding='utf-8') as f:
 				(p.shipping_fee + p.skus[1].full_price) * 1.5 + .13 * 9.99,
 				.13
 			]
-			line = '\t'.join([str(v) for v in line]) + '\n'
-			excel_table += line
+			lines.append('\t'.join([str(v) for v in line]))
 
-			f.write(line)
+	final_text = '\n'.join(lines)
+	f.write(final_text)
 
-pyperclip.copy(excel_table)
+pyperclip.copy(final_text)
