@@ -176,9 +176,9 @@ class Importer:
 
 			for prop_value_pair in prop_data['skuPropertyValues']:
 				values.append(Product.PropertyValue(
-					name=prop_value_pair['propertyValueDefinitionName'],
+					name=prop_value_pair.get('propertyValueDisplayName', prop_value_pair['propertyValueDefinitionName']),
 					id=prop_value_pair['propertyValueId'],
-					image_url=prop_value_pair['skuPropertyImagePath'] if 'skuPropertyImagePath' in prop_value_pair else None
+					image_url=prop_value_pair.get('skuPropertyImagePath', None)
 				))
 
 			product.props.append(Product.Property(
