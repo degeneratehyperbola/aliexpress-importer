@@ -175,10 +175,11 @@ class Importer:
 			values = []
 
 			for prop_value_pair in prop_data['skuPropertyValues']:
+				prop_value_pair: dict
 				values.append(Product.PropertyValue(
-					name=prop_value_pair['propertyValueDefinitionName'],
+					name=prop_value_pair.get('propertyValueDefinitionName', prop_value_pair['propertyValueDisplayName']),
 					id=prop_value_pair['propertyValueId'],
-					image_url=prop_value_pair['skuPropertyImagePath'] if 'skuPropertyImagePath' in prop_value_pair else None
+					image_url=prop_value_pair.get('skuPropertyImagePath', None)
 				))
 
 			product.props.append(Product.Property(
